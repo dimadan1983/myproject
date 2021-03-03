@@ -4,6 +4,7 @@
 #include "BaseGeomeryActor.h" 
 #include "Engine/Engine.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "TimerManager.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogBaseGeometry, All, All)
 // Sets default values
@@ -28,6 +29,8 @@ void ABaseGeomeryActor::BeginPlay()
 	// printTypes();
 
 	SetColor(GeometryData.Color);
+
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ABaseGeomeryActor::OnTimerFired, GeometryData.TimerRate, true);
 }
 
 // Called every frame
@@ -59,8 +62,12 @@ void ABaseGeomeryActor::printStringTypes()
 	FString Stat = FString::Printf(TEXT("\n=== All stat === \n%s \n%s \n%s ==="), *WeaponNumStr, *HealthStr, *HasWeaponStr);
 	UE_LOG(LogBaseGeometry, Warning, TEXT("%s"), *Stat);
 
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, Name);
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Stat, true, FVector2D(1.5f, 1.5f));
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, Name);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Stat, true, FVector2D(1.5f, 1.5f));
+	}
+
 }
 
 void ABaseGeomeryActor::printTransform()
@@ -86,11 +93,15 @@ void ABaseGeomeryActor::HandleMovement()
 	{
 		case EMovementType::Sin:
 		{
-			float Time = GetWorld()->GetTimeSeconds();
 			FVector CurrentLocation = GetActorLocation();
 
-			CurrentLocation.Z = InitialLocation.Z + GeometryData.amplitude * FMath::Sin(GeometryData.Frequency * Time);
-			SetActorLocation(CurrentLocation);
+			if (GetWorld())
+			{
+				float Time = GetWorld()->GetTimeSeconds();
+
+				CurrentLocation.Z = InitialLocation.Z + GeometryData.amplitude * FMath::Sin(GeometryData.Frequency * Time);
+				SetActorLocation(CurrentLocation);
+			}
 			break;
 		}
 
@@ -101,10 +112,30 @@ void ABaseGeomeryActor::HandleMovement()
 
 void ABaseGeomeryActor::SetColor(const FLinearColor &Color)
 {
+	if (!BaseMesh) return;
+
+
 	UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
 	if (DynMaterial)
 	{
 		DynMaterial->SetVectorParameterValue("Color", Color);
 	}
+}
+
+void ABaseGeomeryActor::OnTimerFired()
+{
+	if (++TimerCount <= MaxTimerCount)
+	{
+		const FLinearColor NewColor = FLinearColor::MakeRandomColor();
+
+		UE_LOG(LogTemp, Display, TEXT("TimerCount: %i, Color to set is: %s"), TimerCount, *NewColor.ToString());
+		SetColor(NewColor);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Display, TEXT("Timer has been stopped!"));
+		GetWorldTimerManager().ClearTimer(TimerHandle);
+	}
+
 }
 
