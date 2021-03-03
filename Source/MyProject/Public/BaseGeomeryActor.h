@@ -7,6 +7,31 @@
 #include "Components/StaticMeshComponent.h"
 #include "BaseGeomeryActor.generated.h"
 
+UENUM(BlueprintType)
+enum class EMovementType : uint8
+{
+	Sin,
+	Static
+};
+
+USTRUCT(BlueprintType)
+struct FGeometryData   // начинается с F
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float amplitude = 50.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float Frequency = 2.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	EMovementType MoveType = EMovementType::Static;
+
+	UPROPERTY(EditAnywhere, Category = "Design")
+	FLinearColor Color = FLinearColor::Black;
+
+};
 
 UCLASS()
 class MYPROJECT_API ABaseGeomeryActor : public AActor
@@ -16,6 +41,7 @@ class MYPROJECT_API ABaseGeomeryActor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ABaseGeomeryActor();
+
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* BaseMesh;
 
@@ -24,11 +50,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-		float amplitude = 50.0f;
+	UPROPERTY(EditAnywhere, Category = "GeometryData")
+	FGeometryData GeometryData;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-		float Frequency = 2.0f;
 
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
@@ -55,5 +79,8 @@ private:
 	void printTypes();
 	void printStringTypes();
 	void printTransform();
+	void HandleMovement();
+
+	void SetColor(const FLinearColor &Color);
 
 };

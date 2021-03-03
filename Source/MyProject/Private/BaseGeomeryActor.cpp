@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BaseGeomeryActor.h"
+#include "BaseGeomeryActor.h" 
 #include "Engine/Engine.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogBaseGeometry, All, All)
 // Sets default values
@@ -22,23 +23,19 @@ void ABaseGeomeryActor::BeginPlay()
 	Super::BeginPlay();
 
 	InitialLocation = GetActorLocation();
-	printTransform();
-	//printStringTypes();
-	//printTypes();
-	
+	// printTransform();
+	// printStringTypes();
+	// printTypes();
+
+	SetColor(GeometryData.Color);
 }
 
 // Called every frame
 void ABaseGeomeryActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//z = z0 + amplitude * sin(freq * t);
-	float time = GetWorld()->GetTimeSeconds();
-	FVector CurrentLocation = GetActorLocation();
 
-	CurrentLocation.Z = InitialLocation.Z + amplitude * FMath::Sin(Frequency * time);
-	SetActorLocation(CurrentLocation);
-
+	HandleMovement();
 }
 
 void ABaseGeomeryActor::printTypes()
@@ -80,5 +77,34 @@ void ABaseGeomeryActor::printTransform()
 	UE_LOG(LogTemp, Warning, TEXT("Scale %s"), *Scale.ToString());
 
 	UE_LOG(LogTemp, Warning, TEXT("Human Transform %s"), *Transform.ToHumanReadableString());
+}
+
+
+void ABaseGeomeryActor::HandleMovement()
+{
+	switch (GeometryData.MoveType)
+	{
+		case EMovementType::Sin:
+		{
+			float Time = GetWorld()->GetTimeSeconds();
+			FVector CurrentLocation = GetActorLocation();
+
+			CurrentLocation.Z = InitialLocation.Z + GeometryData.amplitude * FMath::Sin(GeometryData.Frequency * Time);
+			SetActorLocation(CurrentLocation);
+			break;
+		}
+
+		case EMovementType::Static: break;
+		default: break;
+	}
+}
+
+void ABaseGeomeryActor::SetColor(const FLinearColor &Color)
+{
+	UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
+	if (DynMaterial)
+	{
+		DynMaterial->SetVectorParameterValue("Color", Color);
+	}
 }
 
