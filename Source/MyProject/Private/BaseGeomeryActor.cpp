@@ -33,6 +33,12 @@ void ABaseGeomeryActor::BeginPlay()
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ABaseGeomeryActor::OnTimerFired, GeometryData.TimerRate, true);
 }
 
+void ABaseGeomeryActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UE_LOG(LogTemp, Error, TEXT("Actor is destroyed"));
+
+}
+
 // Called every frame
 void ABaseGeomeryActor::Tick(float DeltaTime)
 {
@@ -130,11 +136,13 @@ void ABaseGeomeryActor::OnTimerFired()
 
 		UE_LOG(LogTemp, Display, TEXT("TimerCount: %i, Color to set is: %s"), TimerCount, *NewColor.ToString());
 		SetColor(NewColor);
+		OnColorChanged.Broadcast(NewColor, GetName());
 	}
 	else
 	{
 		UE_LOG(LogTemp, Display, TEXT("Timer has been stopped!"));
 		GetWorldTimerManager().ClearTimer(TimerHandle);
+		OnTimerFinished.Broadcast(this);
 	}
 
 }
